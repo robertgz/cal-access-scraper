@@ -21,7 +21,8 @@
   },
   "homepage": "https://github.com/robertgz/cal-access-scraper#readme",
   "dependencies": {
-    "playwright": "^1.22.2"
+    "playwright": "^1.22.2",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "@types/node": "^17.0.41",
