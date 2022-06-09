@@ -8,7 +8,9 @@
     "watch": "tsc --watch",
     "clean": "rimraf dist",
     "build": "tsc",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "npm run mocha",
+    "mocha": "ts-mocha -p tsconfig.json test/**/*.spec.ts",
+    "mocha:watch": "ts-mocha -p tsconfig.json test/**/*.spec.ts -w --watch-files '**/*.ts'"
   },
   "repository": {
     "type": "git",
