@@ -29,10 +29,11 @@ export const getFilings = async (filingDate: string | Date): Promise<Filing[]> =
   const selector = `#_ctl3_btnSubmit + br + br ~ table`;
 
   const rows = await page.locator(selector);
-  const count = await rows.count()
+  const count = await rows.count();
 
   for (let i = 0; i < count; ++i) {
-    let row = await getRow(await rows.nth(i).locator(' > tbody'));
+    const rowLocator = rows.nth(i).locator(' > tbody');
+    let row = await getRow(rowLocator);
     filings.push(row);
   }
 
@@ -40,7 +41,44 @@ export const getFilings = async (filingDate: string | Date): Promise<Filing[]> =
   return filings;
 }
 
+// Uses elementHandles to traverse the DOM.
 const getRow = async (row: Locator): Promise<Filing> => {
+  const rows = await row.locator(' > tr').elementHandles();
+
+  const row0 = (await rows[0].$$('> td > a'))[0];
+  const row1 = (await rows[1].$$(' > td > span'))[0];
+  const row2 = (await rows[2].$$(' > td > span'));
+
+  const committeeName = await row0.innerText();
+  const committeeID = getParam(await row0.getAttribute('href'), 'id');
+  const session = getParam(await row0.getAttribute('href'), 'session');
+  
+  const formName = getFormName(await row1.textContent());
+  const formCode = getFormCode(await row1.textContent());
+  const amendId = getParam(await (await rows[1].$$(' > td > span > a'))[0].getAttribute('href'), 'amendid');
+
+  const filingId = getFilingId(await row2[1].innerText());
+  const period = await row2[0].innerText();
+  const periods = getPeriods(await row2[0].innerText());
+  const fromPeriod = periods.from;
+  const toPeriod = periods.to;
+
+  return {
+    committeeName,
+    committeeID,
+    formName,
+    formCode,
+    period,
+    fromPeriod,
+    toPeriod,
+    session,
+    filingId,
+    amendId,
+  }
+}
+
+// Uses Locators to traverse the DOM. Has poor performance in a loop.
+const getRowUsingLocator = async (row: Locator): Promise<Filing> => {
   const rows = row.locator(' > tr');
   const periods = getPeriods(await rows.nth(2).locator(' > td > span').nth(0).innerText());
 
@@ -59,11 +97,11 @@ const getRow = async (row: Locator): Promise<Filing> => {
 }
 
 const getFormName = (text: string | null): string => {
-  return text ? text.split('(')[0].trim() : ''
+  return text ? text.split('(')[0].trim() : '';
 }
 
 const getFormCode = (text: string | null): string => {
-  return text ? text.split('(')[1].split(')')[0].split(' ')[1].trim() : ''
+  return text ? text.split('(')[1].split(')')[0].split(' ')[1].trim() : '';
 }
 
 const getFilingId = (text: string | null): string => {
@@ -81,13 +119,14 @@ const getPeriods = (text: string | null): { from: string, to: string } => {
   const periods = text?  text?.split(':')[1].split('-') : '';
   const from = periods[0] ? periods[0].trim() : '';
   const to = periods[1] ? periods[1].trim() : '';
-  return { from, to }
+  return { from, to };
 }
 
 const getViewDateURl = (date: Date): string => {
+  const urlPrefix = `https://cal-access.sos.ca.gov/Campaign/Other/List.aspx`;
   const year = date.getFullYear();
   const month = date.getMonth();
   const day = date.getDate();
 
-  return `https://cal-access.sos.ca.gov/Campaign/Other/List.aspx?view=date&year=${year}&month=${month}&day=${day}`;
+  return `${urlPrefix}?view=date&year=${year}&month=${month}&day=${day}`;
 }
