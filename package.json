@@ -23,6 +23,7 @@
   },
   "homepage": "https://github.com/robertgz/cal-access-scraper#readme",
   "dependencies": {
+    "csv-parse": "^5.2.0",
     "playwright": "^1.22.2"
   },
   "devDependencies": {
