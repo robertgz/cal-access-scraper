@@ -7,19 +7,19 @@ var convertToDate = filings.__get__('convertToDate');
 var getFilingsForDate = filings.__get__('getFilingsForDate');
 
 describe('Filings', function () {
-  describe('convertToDate()', function () {
+  describe.only('convertToDate()', function () {
     it('using input: string', function () {
-      assert(convertToDate('6/4/2022') instanceof Date, 'returns an object of type Date');
+      assert.instanceOf(convertToDate('6/4/2022'), Date, 'returns an object of type Date');
     })
     it('using input: string and integer offset', function () {
-      assert(convertToDate('6/4/2022', 2) instanceof Date, 'returns an object of type Date');
+      assert.instanceOf(convertToDate('6/4/2022', 2), Date, 'returns an object of type Date');
     })
   
     it('using a Date object as input', function () {
-      assert(convertToDate(new Date('6/4/2022')) instanceof Date, 'returns an object of type Date');
+      assert.instanceOf(convertToDate(new Date('6/4/2022')), Date, 'returns an object of type Date');
     })
     it('using a Date object as input with integer offset', function () {
-      assert(convertToDate(new Date('6/4/2022'), 3) instanceof Date, 'returns an object of type Date');
+      assert.instanceOf(convertToDate(new Date('6/4/2022'), 3), Date, 'returns an object of type Date');
     })
   });
   
