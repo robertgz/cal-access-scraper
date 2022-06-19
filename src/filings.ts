@@ -13,10 +13,20 @@ interface Filing {
   amendId: string;
 }
 
-export const getFilings = async (filingDate: string | Date): Promise<Filing[]> => {
-  const date: Date = filingDate instanceof Date ? filingDate : new Date(filingDate);
-  const pageURL = getViewDateURl(date);
+export const getFilings = async (filingDate: string | Date, offsetDays: number = 0): Promise<Filing[]> => {
+  const date: Date = convertToDate(filingDate, offsetDays);
 
+  return getFilingsForDate(date);
+}
+
+const getFilingsForDate = async (date: Date): Promise<Filing[]> => {
+  const urlPrefix = `https://cal-access.sos.ca.gov/Campaign/Other/List.aspx`;
+  const pageURL = `${urlPrefix}?${getUrlParams(date)}`;
+  return getFilingsFromURL(pageURL);
+}
+
+const getFilingsFromURL = async (pageURL: string): Promise<Filing[]> => {
+  
   const browser = await chromium.launch({
     headless: true,
   });
@@ -56,8 +66,8 @@ const getRow = async (row: Locator): Promise<Filing> => {
   const formName = getFormName(await row1.textContent());
   const formCode = getFormCode(await row1.textContent());
   const amendId = getParam(await (await rows[1].$$(' > td > span > a'))[0].getAttribute('href'), 'amendid');
+  const filingId = getParam(await (await rows[1].$$(' > td > span > a'))[0].getAttribute('href'), 'filingid');
 
-  const filingId = getFilingId(await row2[1].innerText());
   const period = await row2[0].innerText();
   const periods = getPeriods(await row2[0].innerText());
   const fromPeriod = periods.from;
@@ -122,11 +132,19 @@ const getPeriods = (text: string | null): { from: string, to: string } => {
   return { from, to };
 }
 
-const getViewDateURl = (date: Date): string => {
-  const urlPrefix = `https://cal-access.sos.ca.gov/Campaign/Other/List.aspx`;
+const convertToDate = (filingDate: string | Date, offsetDays: number = 0): Date => {
+  const date = filingDate instanceof Date ? filingDate : new Date(filingDate);
+
+  if (!date) throw 'Error: invalid date';
+  if (!Number.isInteger(offsetDays)) throw 'Error: offsetDays must be an integer';
+
+  date.setDate(date.getDate() + offsetDays);
+  return date;
+}
+
+const getUrlParams = (date: Date): string => {
   const year = date.getFullYear();
   const month = date.getMonth();
   const day = date.getDate();
-
-  return `${urlPrefix}?view=date&year=${year}&month=${month}&day=${day}`;
+  return `view=date&year=${year}&month=${month}&day=${day}`;
 }
