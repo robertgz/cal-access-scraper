@@ -1,8 +1,12 @@
-import { getFilings } from './filings'
+import filings from './filings/'
+import committee from './committee/'
 
-const calAccess = {
-  getFilings,
+export {
+  filings,
+  committee,
 }
 
-export { calAccess };
-export default calAccess;
+export default {
+  filings,
+  committee,
+}
